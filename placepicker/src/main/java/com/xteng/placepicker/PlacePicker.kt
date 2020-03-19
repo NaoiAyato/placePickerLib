@@ -58,7 +58,7 @@ class PlacePicker private constructor() {
             if (ConnectionResult.SUCCESS != result) {
                 throw GooglePlayServicesNotAvailableException(result)
             }
-
+            intent.putExtra(PlacePickerActivity.API_KEY, geoLocationApiKey)
             intent.setClass(activity, PlacePickerActivity::class.java)
             return intent
         }

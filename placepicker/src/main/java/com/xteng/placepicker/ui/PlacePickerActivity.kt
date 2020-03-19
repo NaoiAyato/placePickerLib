@@ -27,6 +27,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.widget.Autocomplete
@@ -58,7 +59,7 @@ class PlacePickerActivity : AppCompatActivity(), KoinComponent,
 
         private const val STATE_CAMERA_POSITION = "state_camera_position"
         private const val STATE_LOCATION = "state_location"
-
+        const val API_KEY = "api_key"
         private const val AUTOCOMPLETE_REQUEST_CODE = 1001
 
         private const val DIALOG_CONFIRM_PLACE_TAG = "dialog_place_confirm"
@@ -84,13 +85,14 @@ class PlacePickerActivity : AppCompatActivity(), KoinComponent,
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
+    private lateinit var geoLocationApiKey: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_place_picker)
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
+        geoLocationApiKey = intent.getStringExtra(API_KEY)
         lastKnownLocation = savedInstanceState
             ?.getParcelable(STATE_LOCATION) ?: lastKnownLocation
         cameraPosition = savedInstanceState
@@ -114,7 +116,13 @@ class PlacePickerActivity : AppCompatActivity(), KoinComponent,
         if ((requestCode == AUTOCOMPLETE_REQUEST_CODE) && (resultCode == Activity.RESULT_OK)) {
             data?.run {
                 val place = Autocomplete.getPlaceFromIntent(this)
-                showConfirmPlacePopup(place)
+//                showConfirmPlacePopup(place)
+                if (place != null) {
+                    setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra(PlacePicker.EXTRA_PLACE, place)
+                    })
+                    finish()
+                }
             }
         }
     }
@@ -279,7 +287,10 @@ class PlacePickerActivity : AppCompatActivity(), KoinComponent,
             resources,
             UiUtils.getPlaceDrawableRes(this, place), null
         )!!
-        DrawableCompat.setTint(fgDrawable, ContextCompat.getColor(this,R.color.colorMarkerInnerIcon))
+        DrawableCompat.setTint(
+            fgDrawable,
+            ContextCompat.getColor(this, R.color.colorMarkerInnerIcon)
+        )
 
         val bitmap = Bitmap.createBitmap(
             bgDrawable.intrinsicWidth,
@@ -390,7 +401,10 @@ class PlacePickerActivity : AppCompatActivity(), KoinComponent,
 
         // 恢复任何已保存状态
         restoreMapState()
-
+        Places.initialize(
+            applicationContext,
+            geoLocationApiKey
+        )
         if (isLocationPermissionGranted) {
 
             if (lastKnownLocation == null) {
@@ -412,9 +426,9 @@ class PlacePickerActivity : AppCompatActivity(), KoinComponent,
     }
 
     private fun requestPlacesSearch() {
-        if(lastKnownLocation==null){
-            return
-        }
+//        if(lastKnownLocation==null){
+//            return
+//        }
 
         // Google不会向这些字段收费
         // https://developers.google.com/places/android-sdk/usage-and-billing#basic-data
@@ -480,7 +494,6 @@ class PlacePickerActivity : AppCompatActivity(), KoinComponent,
             googleMap?.isMyLocationEnabled = false
         }
     }
-
 
 
 }
