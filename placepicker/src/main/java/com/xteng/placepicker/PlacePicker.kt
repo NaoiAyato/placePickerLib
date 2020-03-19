@@ -62,7 +62,6 @@ class PlacePicker private constructor() {
             intent.setClass(activity, PlacePickerActivity::class.java)
             return intent
         }
-
         /**
          * 通过传递当前应用程序上下文来初始化依赖注入框架
          */
